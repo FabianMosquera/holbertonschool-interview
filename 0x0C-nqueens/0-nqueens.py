@@ -1,95 +1,122 @@
 #!/usr/bin/python3
-""" This script solves the N-Queen problem"""
 
 
 import sys
 
 
-def check_moves(matrix, position_x, position_y):
+def diagonals(results, N):
+    # fill diagonals
+    diagonals = []
+    for i in results:
+        # up-left
+        it_row = i[0]
+        it_col = i[1]
+        while it_col >= 0 and it_col < N and it_row >= 0 and it_row < N:
+            if [it_row, it_col] not in diagonals:
+                diagonals.append([it_row, it_col])
+            it_row -= 1
+            it_col -= 1
+
+        # up-right
+        it_row = i[0]
+        it_col = i[1]
+        while it_col >= 0 and it_col < N and it_row >= 0 and it_row < N:
+            if [it_row, it_col] not in diagonals:
+                diagonals.append([it_row, it_col])
+            it_row -= 1
+            it_col += 1
+
+        # up-right
+        it_row = i[0]
+        it_col = i[1]
+        while it_col >= 0 and it_col < N and it_row >= 0 and it_row < N:
+            if [it_row, it_col] not in diagonals:
+                diagonals.append([it_row, it_col])
+            it_row += 1
+            it_col -= 1
+
+        # down-right
+        it_row = i[0]
+        it_col = i[1]
+        while it_col >= 0 and it_col < N and it_row >= 0 and it_row < N:
+            if [it_row, it_col] not in diagonals:
+                diagonals.append([it_row, it_col])
+            it_row += 1
+            it_col += 1
+
+    return diagonals
+
+
+def isSafe(row, col, results, N):
     """
-    This function checks if a position (x, y) has
-    has a 1 horizontal, vertical or diagonal
+    know if safe a position
     """
-    for x in range(len(matrix)):
-        for y in range(len(matrix[0])):
-            # Checks for horizontal queens
-            if (matrix[x][position_y] == 1):
-                return(0)
-            # Checks for vertical queens
-            if (matrix[position_x][y] == 1):
-                return(0)
-            # Diagonal Check for queens
-            try:
-                if (matrix[position_x + x][position_y + x] == 1):
-                    return(0)
-            except IndexError:
-                pass
-            try:
-                if (position_x - x >= 0):
-                    if (matrix[position_x - x][position_y + x] == 1):
-                        return(0)
-            except IndexError:
-                pass
-            try:
-                if (position_x - x >= 0 and position_y - x >= 0):
-                    if (matrix[position_x - x][position_y - x] == 1):
-                        return(0)
-            except IndexError:
-                pass
-            try:
-                if (position_y - x >= 0):
-                    if (matrix[position_x + x][position_y - x] == 1):
-                        return(0)
-            except IndexError:
-                pass
-    return(1)
+    # validate columns
+    for _row in range(N):
+        if [_row, col] in results:
+            return False
+
+    return not [row, col] in diagonals(results, N)
 
 
-def put_coords(matrix, result):
+def chess(N):
     """
-    This function print a pair of coords to result
+    iterate the positions
     """
-    for i in range(0, len(matrix)):
-        for j in range(0, len(matrix[0])):
-            if (matrix[i][j] == 1):
-                result[i][0] = i
-                result[i][1] = j
-    return result
+    result = []
+    row = 0
+    col = 0
+
+    while row < N:
+        while col < N:
+            if isSafe(row, col, result, N):
+                result.append([row, col])
+                break
+            col += 1
+
+        # if a new position not exists in results
+        if len(result) != (row + 1):
+            row -= 1
+            if row < 0:
+                break
+            col = result[row][1] + 1
+            del result[row]
+            continue
+        elif len(result) == N:
+            print(result)
+            col += 1
+            del result[row]
+            continue
+        row += 1
+        col = 0
 
 
-def recursive_chess(matrix, columns, n):
+def start():
     """
-    This function checks for every queen
-    if there's a queen atacking if not print
-    the n queens position
+    N queens
     """
-    if (columns == n):
-        result = [[0 for x in range(2)] for y in range(n)]
-        print(put_coords(matrix, result))
-        return
+    args = sys.argv
 
-    for row in range(n):
-        if (check_moves(matrix, row, columns) == 1):
-            matrix[row][columns] = 1
-            recursive_chess(matrix, columns + 1, n)
-            matrix[row][columns] = 0
-
-
-if __name__ == '__main__':
-
-    if len(sys.argv) != 2:
+    # Usage error
+    if len(args) is not 2:
         print("Usage: nqueens N")
         sys.exit(1)
 
+    # type value error
     try:
-        n = int(sys.argv[1])
-    except ValueError:
+        int(args[1])
+    except:
         print("N must be a number")
         sys.exit(1)
 
-    if n < 4:
+    # less than 4 error
+    if int(args[1]) < 4:
         print("N must be at least 4")
         sys.exit(1)
 
-    matrix = [[0 for j in range(n)] for i in range(n)]
-    recursive_chess(matrix, 0, n)
+    N = int(args[1])
+    chess(N)
+
+
+if __name__ == "__main__":
+    start()
