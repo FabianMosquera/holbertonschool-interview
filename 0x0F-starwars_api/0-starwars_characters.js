@@ -1,32 +1,28 @@
 #!/usr/bin/node
 const request = require('request');
-const MyFiles = process.argv.slice(2);
-let data;
-let i;
-let MyList = [];
-function GetCharId (id) {
-  request('https://swapi-api.hbtn.io/api/films/' + id,
-    async function (error, response, body) {
-      if (error) console.error(error);
-      else {
-        data = JSON.parse(body);
-        MyList = data.characters;
-        for (i = 0; i < MyList.length; i++) {
-          const name = await GetName(MyList[i]);
-          console.log(name);
-        }
-      }
-    });
-}
+const id = process.argv[2];
+const url = `https://swapi-api.hbtn.io/api/films/${id}`;
 
-function GetName (url) {
-  return new Promise((resolve, reject) => {
-    request(url, (error, response, body) => {
-      if (error) reject(error);
-      else {
-        resolve(JSON.parse(body).name);
-      }
-    });
+function PrintCharactersInOrder (characters, idx) {
+  if (idx >= characters.length) {
+    return;
+  }
+  const characterURL = characters[idx];
+  request.get(characterURL, (error, response, body) => {
+    if (error) {
+      console.log(error);
+    }
+    if (response.statusCode === 200) {
+      console.log(JSON.parse(body).name);
+    }
+    idx += 1;
+    PrintCharactersInOrder(characters, idx);
   });
 }
-GetCharId(MyFiles[0]);
+request.get(url, (error, response, body) => {
+  if (error) {
+    console.log(error);
+  } else if (response.statusCode === 200) {
+    PrintCharactersInOrder(JSON.parse(body).characters, 0);
+  }
+});
