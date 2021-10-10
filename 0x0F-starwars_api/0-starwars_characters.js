@@ -1,24 +1,32 @@
 #!/usr/bin/node
-
 const request = require('request');
-const ID = process.argv[2];
-const URL_API = `https://swapi-api.hbtn.io/api/films/${ID}`;
+const MyFiles = process.argv.slice(2);
+let data;
+let i;
+let MyList = [];
+function GetCharId (id) {
+  request('https://swapi-api.hbtn.io/api/films/' + id,
+    async function (error, response, body) {
+      if (error) console.error(error);
+      else {
+        data = JSON.parse(body);
+        MyList = data.characters;
+        for (i = 0; i < MyList.length; i++) {
+          const name = await GetName(MyList[i]);
+          console.log(name);
+        }
+      }
+    });
+}
 
-const getDataFromApi = async (url) => {
+function GetName (url) {
   return new Promise((resolve, reject) => {
-    request(url, function (error, response, body) {
+    request(url, (error, response, body) => {
       if (error) reject(error);
-      else resolve(JSON.parse(body));
+      else {
+        resolve(JSON.parse(body).name);
+      }
     });
   });
-};
-
-const displayData = async (url) => {
-  const { characters } = await getDataFromApi(url);
-  for (const character of characters) {
-    const { name } = await getDataFromApi(character);
-    console.log(name);
-  }
-};
-
-displayData(URL_API);
+}
+GetCharId(MyFiles[0]);
